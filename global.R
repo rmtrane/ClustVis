@@ -95,7 +95,7 @@ maxTooltipsHm = 80
 maxTooltipsJitterPlot = 100
 
 maxLabelLengthJitterplot = 35 #maximum length of the label on jitterplot (in characters), to avoid very long names when columns are aggregated
-maxUploadMB = 2 #maximum uploaded file size in MB
+maxUploadMB = 100 #2 #maximum uploaded file size in MB
 
 logUsage = TRUE #whether to log size of datasets
 logFile = str_c(sessPath, "shiny-server-matrix-size.log")
@@ -118,7 +118,7 @@ if(clustvisEdition != "original"){
   maxTooltipsPCA = 600
   maxTooltipsHm = 120
   maxTooltipsJitterPlot = 150
-  maxUploadMB = 15
+  maxUploadMB = 100 # 15
   maxAnnoLevels = 50
   titleSufix = str_c(" - ", clustvisEdition, " edition")
 }
