@@ -23,7 +23,7 @@ if(!dir.exists(sessPathLarge))
   dir.create(sessPathLarge)
 
 
-source(here::here("Rpackage/R/clustvis.R"))
+source("./Rpackage/R/clustvis.R")
 
 # .libPaths(libPath)
 suppressPackageStartupMessages({
