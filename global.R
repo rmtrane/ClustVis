@@ -40,7 +40,7 @@ suppressPackageStartupMessages({
   library(plyr)
   library(gtable)
   library(ggplot2)
-  #library(Cairo) #nicer ggplot2 output
+  library(Cairo) #nicer ggplot2 output
   library(XML)
   library(grid)
   library(gridSVG)
