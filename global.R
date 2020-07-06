@@ -1,16 +1,31 @@
 #Author: Tauno Metsalu
 #Copyright: 2018 University of Tartu
 
-path = "/srv/shiny-server/" #path of this file
-libPath = "/usr/local/lib/R/site-library/" #path of R libraries
-sessPathLarge = "/srv/settings_large/" #where to save settings with large datasets
-sessPath = "/srv/settings/" #where to save settings
-sessPathExternal = "/srv/settings_external/" #where to save settings for externally saved datasets
-pbPathPrefix = "/srv/data_pb/" #path of MEM files
+path <- here::here("") # "/Users/ralphtrane/ClustVis/" #path of this file
+# libPath = "/usr/local/lib/R/site-library/" #path of R libraries
+sessPathLarge = "./settings_large/" #where to save settings with large datasets
+sessPath = "./settings/" #where to save settings
+sessPathExternal = "./settings_external/" #where to save settings for externally saved datasets
+pbPathPrefix = "./data_pb/" #path of MEM files
 
-source("/srv/shiny-server/Rpackage/R/clustvis.R")
+message(getwd())
 
-.libPaths(libPath)
+if(!dir.exists(sessPath))
+  dir.create(sessPath)
+
+if(!dir.exists(sessPathExternal))
+  dir.create(sessPathExternal)
+
+if(!dir.exists(pbPathPrefix))
+  dir.create(pbPathPrefix)
+
+if(!dir.exists(sessPathLarge))
+  dir.create(sessPathLarge)
+
+
+source(here::here("Rpackage/R/clustvis.R"))
+
+# .libPaths(libPath)
 suppressPackageStartupMessages({
   library(stringr)
   library(RNetCDF)
@@ -25,7 +40,7 @@ suppressPackageStartupMessages({
   library(plyr)
   library(gtable)
   library(ggplot2)
-  library(Cairo) #nicer ggplot2 output
+  #library(Cairo) #nicer ggplot2 output
   library(XML)
   library(grid)
   library(gridSVG)
@@ -42,8 +57,8 @@ names(clustDists) = convertIdsToNames(clustDists)
 clustDists = clustDists[clustDists != "minkowski"] #it is already covered by special cases
 clustMethods = c("single", "complete", "average", "mcquitty", "median", "centroid", "ward.D2", "ward.D")
 names(clustMethods) = convertIdsToNames(clustMethods)
-treeOrderings = c("tightest cluster first", 
-  "higher median value first", "higher mean value first", 
+treeOrderings = c("tightest cluster first",
+  "higher median value first", "higher mean value first",
   "lower median value first", "lower mean value first",
   "original", "reverse original")
 colortab = brewer.pal.info #all RColorBrewer colors
@@ -123,7 +138,7 @@ projectBrowserPath = str_c(pbPathPrefix, str[length(str)], "/")
 load(file = str_c(pwPath, "clustvisInput_", pwDate, "_helpTables.RData"))
 helpTablesOptions = list(rownames = FALSE, lengthMenu = c(5, 10, 25, 50), pageLength = 5) #options for help page tables and table below jitterplot
 uploadInputOptions = list("Load sample data" = 1, "Upload file" = 2,
-  "Paste data" = 3, "Import public dataset from ArrayExpress" = 5, 
+  "Paste data" = 3, "Import public dataset from ArrayExpress" = 5,
   "Load saved settings" = 4, "Import prepared gene expression matrix" = 6)
 if(clustvisEdition == "custom"){
   uploadInputOptions[[which(uploadInputOptions == 5)]] = NULL
@@ -351,7 +366,7 @@ dataProcess = function(data){
 	if(is.null(data$inputSaved) | is.null(data$mat)) return(NULL)
 	set.seed(124987234)
 	inputSaved = data$inputSaved
-	
+
 	if(inputSaved$procTransformation == "no transformation"){
 	  transformation = NA
 	} else {
@@ -369,13 +384,13 @@ dataProcess = function(data){
 	rowCentering = toBoolean(inputSaved$procCentering)
 	rowScaling = inputSaved$procScaling
 	pcaMethod = inputSaved$procMethod
-	
+
 	if(is.na(annoColMethodAgg) || length(annoColKeep) == 0){
 	  #not aggregating
 	  annoColMethodAgg = NA
 	  annoColKeep = c(annoColKeep, intersect(colnames(data$annoCol), interactivityAnnos))
 	}
-	
+
 	l = processData(data, transformation = transformation, annoColKeep = annoColKeep, annoColMethodAgg = annoColMethodAgg, maxNaRows = maxNaRows, maxNaCols = maxNaCols, remConstCols = remConstCols, rowCentering = rowCentering, rowScaling = rowScaling, pcaMethod = pcaMethod, maxComponents = maxComponents)
 	l$inputSaved = inputSaved
 	l
@@ -473,7 +488,7 @@ filterRows = function(session, mat, input, organism, annoGroupsCol){
     mat = NULL
   }
   message = NULL
-  if((input$uploadRowFiltering == 1 & input$uploadPbPathway != "") | 
+  if((input$uploadRowFiltering == 1 & input$uploadPbPathway != "") |
        (input$uploadRowFiltering == 4) |
        (input$uploadRowFiltering == 3 & input$uploadNbrClusters >= 2 & input$uploadNbrClusters <= 600)){
     if(input$uploadDataInput == 5){
@@ -509,7 +524,7 @@ filterRows = function(session, mat, input, organism, annoGroupsCol){
       glistRm = glist[!(glist %in% rownames(mat))]
     }
     if(length(glistRm) > 0){
-      message = str_c("The following genes are not present in the dataset and were removed: ", 
+      message = str_c("The following genes are not present in the dataset and were removed: ",
                       str_c(glistRm, collapse = ", "), ".")
     }
   }
@@ -568,7 +583,7 @@ annotationsFilters = function(anno, inputSaved, type, groups){
           })
           taglist[[2 * m]] = checkboxGroupInput(idtrack, NULL, choices = cn[i], selected = sel)
           taglist[[2 * m + 1]] = conditionalPanel(condition = str_c("input.", idtrack, " != ''"),
-            checkboxGroupInput(str_c(idtrack, "ChangeAll"), 
+            checkboxGroupInput(str_c(idtrack, "ChangeAll"),
               NULL, choices = changeAll, selected = selChange),
             checkboxGroupInput(str_c(idtrack, "sub"), NULL, choices = uni, selected = selSub)
           )
@@ -639,7 +654,7 @@ plotPCA = function(data){
   } else {
     showSampleIds = toBoolean(inputSaved$pcaShowSampleIds)
   }
-  
+
   generatePCA(proc = data, pcx = pcx, pcy = pcy, switchDirX = switchDirX, switchDirY = switchDirY, colorAnno = colorAnno, colorScheme = colorScheme, showEllipses = showEllipses, ellipseConf = ellipseConf, ellipseLineWidth = ellipseLineWidth, ellipseLineType = ellipseLineType, shapeAnno = shapeAnno, shapeScheme = shapeScheme, plotWidth = plotWidth, plotRatio = plotRatio, marginRatio = marginRatio, pointSize = pointSize, legendPosition = legendPosition, fontSize = fontSize, axisLabelPrefix = axisLabelPrefix, showVariance = showVariance, showSampleIds = showSampleIds, maxColorLevels = maxColorLevels, maxShapeLevels = maxShapeLevels)
 }
 
@@ -669,7 +684,7 @@ plotHeatmap = function(data){
 	fontSizeColnames = inputSaved$hmFontSizeColnames
 	showAnnoTitlesRow = toBoolean(inputSaved$hmShowAnnoTitlesRow)
 	showAnnoTitlesCol = toBoolean(inputSaved$hmShowAnnoTitlesCol)
-  
+
 	createHeatmap(clust = data, nbrClustersRows = nbrClustersRows, nbrClustersCols = nbrClustersCols, colorAnnoRow = colorAnnoRow, colorAnnoCol = colorAnnoCol, legendColorScheme = legendColorScheme, plotWidth = plotWidth, plotRatio = plotRatio, colorRangeMin = colorRangeMin, colorRangeMax = colorRangeMax, matrixColorScheme = matrixColorScheme, revScheme = revScheme, cellBorder = cellBorder, fontSizeGeneral = fontSizeGeneral, showNumbers = showNumbers, fontSizeNumbers = fontSizeNumbers, precisionNumbers = precisionNumbers, showRownames = showRownames, fontSizeRownames = fontSizeRownames, showColnames = showColnames, fontSizeColnames = fontSizeColnames, showAnnoTitlesRow = showAnnoTitlesRow, showAnnoTitlesCol = showAnnoTitlesCol, maxAnnoLevels = maxAnnoLevels)
 }
 
@@ -682,7 +697,7 @@ tableJitter = function(data, original, plotType){
   clickedType = inputSaved[[str_c(plotType, "ClickedType")]]
   matFinal = data$matFinal
   if(!(clickedType %in% c("hmRow", "hmCol", "hmCell", "pcaCol", "pcaCell"))) return(frame())
-  
+
   str = strsplit(object, "-")[[1]]
   if(clickedType == "hmRow"){
     rowIds = as.numeric(str[2])
@@ -702,7 +717,7 @@ tableJitter = function(data, original, plotType){
     nextLinks = NULL
   }
   mapping = data$mappingCol
-  
+
   if(clickedType %in% c("hmRow", "hmCol", "hmCell")){
     if(!is.na(data$hcRows)){
       rowIds = data$hcRows$order[rowIds]
@@ -714,17 +729,17 @@ tableJitter = function(data, original, plotType){
       temp = colIds; colIds = rowIds; rowIds = temp
     }
   }
-  
+
   if(toBoolean(inputSaved$hmTransposeHeatmap)){
     mapping = data$mappingRow
     matFinal = t(matFinal)
   }
-  
+
   xlab = rownames(matFinal)[rowIds]
   ylab = colnames(matFinal)[colIds]
   ylabOriginal = mapping$origName[mapping$aggName %in% ylab]
   sub = original[xlab, ylabOriginal, drop = FALSE]
-  
+
   rowClicked = (length(ylab) >= length(xlab)) #one cell is also like a row
   if(rowClicked){
     temp = ylab; ylab = xlab; xlab = temp
@@ -736,8 +751,8 @@ tableJitter = function(data, original, plotType){
     points$gr = factor(points$gr, levels = xlab)
   } else {
     points$gr = points$rn
-  }  
-  
+  }
+
   if(all(points$rn %in% colnames(original)) && all(points$cn %in% rownames(original))){
     points$rnOrig = points$cn
     points$cnOrig = points$rn
@@ -747,7 +762,7 @@ tableJitter = function(data, original, plotType){
   } else {
     return(NULL)
   }
-  list(points = points, xlab = xlab, ylab = ylab, 
+  list(points = points, xlab = xlab, ylab = ylab,
        plotType = plotType, nextLinks = nextLinks, inputSaved = inputSaved, test = list())
 }
 
@@ -771,7 +786,7 @@ plotJitter = function(data){
     xProp = element_text(angle = 90, vjust = 0.5, hjust = 1, size = xSize)
   }
   ylab = cutLabels(ylab, maxLabelLengthJitterplot)
-  
+
   #dimensions:
   pdf("Rplots.pdf")
   maxw = max(strwidth(xLev, units = 'in', cex = xSize / 12), na.rm = TRUE) #longest x-axis name
@@ -782,7 +797,7 @@ plotJitter = function(data){
   roundingDigits = 2
   picw = round(picwIn * 72, roundingDigits)
   pich = round(pichIn * 72, roundingDigits)
-  
+
   q = ggplot(points, aes(gr, value)) + theme_bw(base_size = baseSize) +
   labs(x = NULL, y = ylab) + theme(axis.text.x = xProp,
     plot.margin = unit(c(1, 0, 0.5, 0), "cm"))
@@ -791,7 +806,7 @@ plotJitter = function(data){
   } else if(inputSaved[[str_c(plotType, "JitterPlotType")]] %in% c("box", "box dots")){
     q = q + geom_boxplot()
   }
-  jitterWidth = ifelse(inputSaved[[str_c(plotType, "JitterSeparateOverlapping")]] == "jittering", 
+  jitterWidth = ifelse(inputSaved[[str_c(plotType, "JitterSeparateOverlapping")]] == "jittering",
                        inputSaved[[str_c(plotType, "JitterJitteringWidth")]], 0)
   if(inputSaved[[str_c(plotType, "JitterPlotType")]] %in% c("violin", "box")){
     alpha = 0 #points not shown
@@ -801,7 +816,7 @@ plotJitter = function(data){
     alpha = 1 #black points
   }
   q = q + geom_jitter(position = position_jitter(height = 0, width = jitterWidth), size = 5, alpha = alpha)
-  list(q = q, pich = pich, picw = picw, pichIn = pichIn, picwIn = picwIn, 
+  list(q = q, pich = pich, picw = picw, pichIn = pichIn, picwIn = picwIn,
               points = points, plotType = plotType, nextLinks = nextLinks)
 }
 
